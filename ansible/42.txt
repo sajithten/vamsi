@@ -1,0 +1,30 @@
+ansible tags
+------------
+if you hav a large playbook it becomes useful to able to run specific part of the playbook rather than running everything in the playbook
+
+---
+- hosts: localhost
+  tasks:
+    - name: enable epel repo
+      command: amazon-linux-extras install epel -y
+      tags: 
+      - enableepel
+    - name: install java
+      yum: 
+        name: java-11-amazon-corretto-headless
+        state: present
+        tags: 
+         - java11
+
+for running only tasks: ansible-playbook filename.yml -t "anableepel"
+
+for skipping tasks: ansible-playbook filename.yml --skip-tags "anableepel"
+
+
+hashicorp vault
+---------------
+
+https://docs.ansible.com/ansible/2.9/plugins/lookup/hashi_vault.html
+
+- debug:
+    msg: "{{ lookup('hashi_vault', 'secret=secret/hello:value token=c975b780-d1be-8016-866b-01d0f9b688a5 url=http://myvault:8200')}}"

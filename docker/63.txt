@@ -1,0 +1,38 @@
+https://www.baeldung.com/ops/docker-volumes
+
+docker run -v $(pwd):/var/opt/project bash:latest bash -c "echo Hello > /var/opt/project/file.txt"
+
+docker run --name=nginxvol1 --mount 'type=volume,src=data-volume,dst=/usr/share/nginx/html' -p 82:80 -d nginx
+
+docker run --name=nginxvol83 --mount 'type=bind,src=/root/htmlfiles,dst=/usr/share/nginx/html' -p 83:80 -d nginx
+
+docker-compose install
+-----------------------
+
+Copy the appropriate docker-compose binary from GitHub:
+
+sudo curl -L https://github.com/docker/compose/releases/download/1.22.0/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+
+NOTE: to get the latest version:
+-------------------------------
+ sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+
+Fix permissions after download:
+------------------------------
+
+sudo chmod +x /usr/local/bin/docker-compose
+
+
+export PATH=$PATH:/usr/local/bin
+
+Verify success:
+--------------
+
+docker-compose version
+
+
+https://github.com/docker/awesome-compose/tree/master/official-documentation-samples/wordpress/
+
+vi docker-compose.yaml
+
+docker-compose up --detach

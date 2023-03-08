@@ -1,0 +1,62 @@
+https://www.armosec.io/blog/setting-up-kubernetes-cluster/
+
+https://www.padok.fr/en/blog/minikube-kubeadm-kind-k3s
+
+https://phoenixnap.com/blog/kubernetes-vs-docker-swarm
+
+
+kubectl (install)
+-----------------
+
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+chmod +x ./kubectl
+mkdir -p $HOME/bin
+cp ./kubectl $HOME/bin/kubectl
+export PATH=$HOME/bin:$PATH
+echo 'export PATH=$HOME/bin:$PATH' >> ~/.bashrc
+source $HOME/.bashrc
+kubectl version --short --client
+
+
+Install docker
+-------------
+yum install docker -y
+service docker start
+
+
+minikube setup
+--------------
+curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+chmod +x minikube
+sudo mv minikube /usr/local/bin/
+yum install conntrack -y
+export PATH=/usr/local/bin:$PATH
+minikube start --driver=none
+
+
+
+single node k8s cluster we can use minikube
+multi mode k8s cluster we can use kubadm
+
+
+
+kubectl get nodes
+
+kubectl version
+
+kubectl create deployment --image=nginx nginx-app
+kubectl create deployment --image=dockerimagename deploymentname
+
+kubectl get deployments
+
+kubectl get pods
+
+kubectl logs nameofthepod
+
+To expose the deployment
+------------------------
+kubectl expose deployment nginx-app --port=80 --name=ngnix-http --type NodePort
+
+kubctl get svc
+
+kubectl delete deployment deploymentname

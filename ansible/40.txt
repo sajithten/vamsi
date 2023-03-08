@@ -1,0 +1,53 @@
+jinja template
+-------------
+variables changes accordingly to requirement
+
+---
+- hosts: localhost
+  tasks:
+    - name: install java
+      yum:
+       name: java-11-corretto-headless
+       state: present
+    - name: fetch java home
+      shell: dirname $(dirname $(readlink -f $(which java)))
+      register: temp_home_java
+    - name: print java home path
+      set_fact: 
+        java_home: "{{ temp_home_java.stdout }}"
+    - name: download apache tomcat and extract
+      get_url:
+        url: 'https://archive.apache.org/dist/tomcat/tomcat-10/v10.1.5/bin/apache-tomcat-10.1.5.tar.gz'
+        dest: /opt
+        mode: '0755'
+    - name: extract tomcat
+      unarchive:
+        src: /opt/apache-tomcat-10.1.5.tar.gz
+        dest: /opt
+        remote_src: yes
+    - name: create tomcat user
+      user: 
+        name: tomcat10
+    - name: create tomcat service file from template file
+      template:
+        src: /root/tomcat10.service.j2
+        dest: /root/tomcat10.service
+        owner: tomcat10
+        group: tomcat10
+        mode: '0755'
+    - name: change ownership to tomcat10 user
+      file:
+        path: /root/tomcat10.service
+        owner: tomcat10
+        group: tomcat10
+   - name: copy service file to systemd system fodler
+      copy:
+        src: /root/tomcat10.service
+        dest: /etc/systemd/system/
+   - name: reoad the system
+      systemd:
+        daemon-reload: yes
+   - name: start tomcat10 service
+      service:
+        name: tomcat10
+        state: started

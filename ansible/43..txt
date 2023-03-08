@@ -1,0 +1,55 @@
+StrictHostKeyChecking no
+The option StrictHostKeyChecking specifies whether or not ssh will automatically add new host keys to the $HOME/. ssh/known_hosts file, 
+or never automatically add new host keys to the host file. This option, when set to yes, 
+provides maximum protection against Trojan horse attacks.
+
+For printing the text from doc.
+ Uses loop
+ -----------------------------------
+Cat targetservers.txt | while read eachline;
+do
+hostname=’echo $eachline| awk -F “ “ ‘{print s1}’ ‘;
+password=’echo $eachline| awk -F “ “ ‘{print s2}’ ‘;
+sshpass -p $password ssh-copy-id -o stricthostkeychecking=no -i  ~/.ssh/id_rsa.pub root@$hostname; done
+
+--------------------------------------------
+for encrypt
+
+echo -n “test123” | base64
+------------------------------------------------
+Cat targetservers.txt | while read eachline;
+do
+hostname=’echo $eachline| awk -F “ “ ‘{print s1}’ ‘;
+password=’echo $eachline| awk -F “ “ ‘{print s2}’ ‘;
+base64 –decode’; sshpass -p $password ssh-copy-id -o stricthostkeychecking=no -i  ~/.ssh/id_rsa.pub root@$hostname; done
+-------------------------------------------------------
+sudo amazon-linux-extras install epel -y
+yum install sshpass -y
+ssh-copy-id -o stricthostkeychecking=no -i  ~/.ssh/id_rsa.pub root@ipadd
+
+include yaml
+---
+-hosts: localhost
+ gather_facts: true
+ tasks:
+   - include: git.yml
+   - include:java.yml
+   
+download git from ansible
+-------------------------
+---
+- hosts: localhost
+  vars:
+    token: tocken from git need to mention here
+	username: git username
+	reponame: git repo name
+  tasks:
+    - name: checkout hte code
+	  git:
+	    repo: 'https://{{ token }} @github.com/{{ username }}/{{ reponame }}.git'
+		dest: /root/checkoutcodedir
+		
+to pass variable to playbook while running
+----------------------------------------
+ansible-playbook test.yml --extra-vars 'username=user'
+

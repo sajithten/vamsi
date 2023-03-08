@@ -1,0 +1,50 @@
+---
+- hosts: cd
+  tasks:
+  - name: Install PIP
+    yum:
+      name: python-pip
+      state: present
+  - name: Install lxml
+    pip:
+      name: lxml
+  - name: install java
+    yum:
+      name: java-17-amazon-corretto-headless
+      state: present
+  - name: download artifacts
+    maven_artifact:
+      group_id: com.sajithten
+      artifact_id: springboot-java-maven
+      repository_url: 'http://65.2.81.134:8081/repository/maven-releases/'
+      version: "{{ version }}"
+      username: admin
+      password: admin123
+      dest: /opt
+  - name: run jar file
+    shell: nohup java -jar /opt/springboot-java-maven-{{ version }}.jar &
+  - name: wait for 20 seconds
+    wait_for:
+       timeout: 20
+    delegate_to: localhost
+  - name: check that a page returns a status 200 and fail if the word greetings is not in the page contents
+    uri:
+     url: 13.235.50.42:8080/course-svc/getAllAwsServices
+     return_content: yes
+    register: this
+    failed_when: "'ec2' not in this.content"
+
+------------------------------------------------
+ansible-playbook playbook.yml --extra-vars 'version=0.1.0'
+
+-------------------------------------------------------
+pipeline{
+      agent any
+      stages{
+         stage('run ansible playbook'){
+            steps{
+               sh """ sudo ansible-playbook /root/download artifacts-from-nexus.yml -i custom-inventory -e '{"version":"{params.version}"' """
+                  }
+              }
+          }
+}

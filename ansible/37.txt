@@ -1,0 +1,77 @@
+To run as sudo mode
+-------------------
+
+become: yes
+become: username
+
+---
+- name: Playbook to download apache maven
+  hosts: localhost
+  become: yes
+  tasks:
+
+we want to check file is already there or not
+---------------------------------------------
+
+---
+- name: Playbook to download jar file
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: Check file exist or not
+      stat:
+        path: /opt/mysql-connector-java-8.0.31.jar
+        register: jar_output
+    -name: print jar-file-existence-output
+     debug: 
+     msg: "{{ jar_output }}"
+    - name: download jar file
+      get_url: 
+        url: https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.31/mysql-connector-java-8.0.31.jar
+        dest: /opt
+        mode: 'o755'
+        when: not jar_output.stat.exists
+
+maven_artifact module
+----------------------
+Requirements:
+
+
+lxml
+
+boto if using a S3 repository (s3://…)
+
+---
+- name: download maven artifact
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: download
+      maven_artifact:
+        group_id: mysql
+        artifact_id: mysql-connector-java
+        version: 8.0.31
+        repository_url: 'https://repo.maven.apache.org/maven2/'
+        dest: /opt
+
+
+
+
+store details in json
+------------------------------------
+
+---
+- hosts: localhost
+  vars: 
+    awsjsondata: {  "nexuspassword":"admin123", "nexususername":"admin"}
+    tasks:
+     - name: get user name
+       set_fact: 
+          username: "{{ awsjsondata | json_query('nexususername') }}"
+      - name: print user name
+        debug: 
+          msg: "{{ username }}"
+
+
+
+

@@ -1,0 +1,25 @@
+echo 'nexus ALL=(ALL)  NOPASSWD:ALL'>> /etc/sudoers
+
+echo 'sonar        ALL=(ALL)       NOPASSWD: ALL'>> /etc/sudoers
+
+
+
+For having option to select repo when build
+---------------------------------------------
+- Select This project is parameterized
+- in string parameter, name is "reponame"
+- in repository url https://github.com/sajithten/${reponame}.git
+-build with parameter will ask
+
+
+
+For having option to select branch when build
+---------------------------------------------
+- Select This project is parameterized
+-Name "branchNameToBuild"
+-in branch specifier "*/{branchNameToBuild}
+
+For webhooks for trigger
+-------------------------
+In settings webhooks
+jenkins url:8080/github-webhook/

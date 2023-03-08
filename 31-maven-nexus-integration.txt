@@ -1,0 +1,40 @@
+maven integration with nexus
+----------------------------
+- copy maven-snapshots url from nexus
+- distribution tag has to be added in pom.xml after parent class
+
+
+for snapshots & releases:
+
+<distributionManagement>
+   <snapshotRepository>
+      <id>nexus-snapshots</id>
+      <url>http://13.232.245.134:8081/repository/maven-snapshots/</url>
+   </snapshotRepository>
+
+<repository>
+      <id>nexus-releases</id>
+      <url>http://13.232.245.134:8081/repository/maven-releases/</url>
+   </repository>
+</distributionManagement>
+
+
+
+- Need to info maven about credentials
+
+vi /opt/maven/conf/settings.xml
+
+<server>
+<id>nexus-snapshots</id>
+<username>admin</username>
+<password>admin123</password>
+</server>
+
+<server>
+<id>nexus-releases</id>
+<username>admin</username>
+<password>admin123</password>
+</server>
+
+
+- mvn deploy

@@ -1,0 +1,17 @@
+---
+- hosts: localhost
+  tasks:
+    - name: install java
+      yum:
+       name: java-11-corretto-headless
+       state: present
+    - name: fetch java home
+      shell: dirname $(dirname $(readlink -f $(which java)))
+      register: temp_home_java
+    - name: print java home path
+      set_fact: 
+        java_home: "{{ temp_home_java.stdout }}"
+    - name: create tomcat service file from template file
+      template:
+        src: /root/tomcat10.service.j2
+        dest: /root/tomcat10.service

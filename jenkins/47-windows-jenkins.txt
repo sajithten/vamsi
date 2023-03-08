@@ -1,0 +1,18 @@
+pipeline{
+    agent { label 'windows-node-01' }
+    tools{
+        maven 'maven-3.8.1'
+    }
+    stages{
+       stage('git checkout') {
+          steps{
+             git 'git link'
+          }
+       }
+     stage('Build maven'){
+         steps{
+             bat 'mvn clean package'
+         }
+      }
+    }
+}

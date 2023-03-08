@@ -1,0 +1,60 @@
+assigning pods to nodes
+-----------------------
+https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
+
+kubectl get nodes
+
+kubectl describe node minikube
+
+kubectl label nodes minikube key1=value1
+
+node-selector.yaml
+-----------------
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+  nodeName: kube-01
+  nodeSelector:
+    key1: value1
+	
+https://kubernetes.io/docs/tasks/configure-pod-container/assign-cpu-resource/
+
+apiVersion: v1
+
+kind: Pod
+
+metadata:
+
+  name: cpu-demo
+
+  namespace: cpu-example
+
+spec:
+
+  containers:
+
+  - name: cpu-demo-ctr
+
+    image: vish/stress
+
+    resources:
+
+      limits:
+
+        cpu: "1"
+
+      requests:
+
+        cpu: "0.5"
+
+    args:
+
+    - -cpus
+
+    - "2"

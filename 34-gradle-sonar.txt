@@ -1,0 +1,171 @@
+wget https://services.gradle.org/distributions/gradle-7.6-bin.zip
+
+/opt/gradle-7.6/bin
+
+vi /.bashrc
+
+export PATH=$PATH:/opt/gradle-7.6/bin
+
+source .bashrc
+
+
+for gradle project we have build.gradle
+
+for building gradle
+-------------------
+
+gradle clean build
+
+
+Artifacts will be stored under
+-----------------------------
+build/libs
+
+Need to integrae to sonar
+------------------------
+sonarqube scaner for gradle
+
+need to mention in first line of build script
+
+
+
+buildscript {
+    ext {
+        springBootVersion = '3.0.1.RELEASE'
+		jacocoVersion = '0.8.9'
+    }
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.5.0.2730"
+    }
+}
+
+
+--------------------
+apply plugin: 'jacoco'
+apply plugin: 'org.sonarqube'
+--------------------------------
+jacoco{
+  toolVersion = "${jacocoVersion}"
+}
+
+jacocoTestReport {
+ reports{
+  html.enabled=true
+  xml.enabled=true
+  csv.enabled=true
+ }
+}
+
+
+
+sonarqube {
+    properties {
+
+    property "sonar.projectName", "gradle-demo"
+    property "sonar.exclusions", "**/generated- */**/*"
+    property "sonar.projectKey", "org.sonarqubeJacocoCodeCoverage"
+    property "sonar.reportPath", "${project.buildDir}/jacoco/test.exec"
+    property "sonar.host.url", "http://43.205.95.232:9000"
+    property "sonar.sources", "src/main/java"
+    property "sonar.tests", "src/test/java"
+    property "sonar.login", "admin"
+    property "sonar.password", "admin123"
+
+    }
+  }
+
+sample build file
+-------------------------------------------------
+
+
+buildscript {
+    ext {
+        springBootVersion = '3.0.1.RELEASE'
+                jacocoVersion = '0.8.7'
+    }
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.5.0.2730"
+    }
+}
+
+plugins {
+        id 'java'
+        id 'org.springframework.boot' version '3.0.1'
+        id 'io.spring.dependency-management' version '1.1.0'
+}
+apply plugin: 'jacoco'
+apply plugin: 'org.sonarqube'
+group = 'com.gradle'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '17'
+
+repositories {
+        mavenCentral()
+}
+
+dependencies {
+        implementation 'org.springframework.boot:spring-boot-starter-web'
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+test {
+        useJUnitPlatform()
+}
+jacoco{
+  toolVersion = "${jacocoVersion}"
+}
+
+jacocoTestReport {
+ reports{
+  html.enabled=true
+  xml.enabled=true
+  csv.enabled=true
+ }
+}
+sonarqube {
+    properties {
+
+    property "sonar.projectName", "gradle-demo"
+    property "sonar.exclusions", "**/generated- */**/*"
+    property "sonar.projectKey", "org.sonarqubeJacocoCodeCoverage"
+    property "sonar.reportPath", "${project.buildDir}/jacoco/test.exec"
+    property "sonar.host.url", "http://43.205.95.232:9000"
+    property "sonar.sources", "src/main/java"
+    property "sonar.tests", "src/test/java"
+    property "sonar.login", "squ_f88da51333f6dcbf9e200f860d851cb1de24e863"
+    
+
+    }
+  }
+
+--------------------------------------------------------------------------------
+
+gradle sonar
+
+
+
+
+
+
+
+
+
+
+
+
+
+

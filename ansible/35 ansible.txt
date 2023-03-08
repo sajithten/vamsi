@@ -1,0 +1,123 @@
+-amazon-linux-extras install ansible2
+
+-install ansible & python
+
+-create inventory file
+
+vi /etc/ansible/host
+
+
+
+[servers]
+
+IPS
+
+-for setting name of controller machine
+
+sudo hostnamectl set-hostname controller-machine
+
+
+-create key and copy on controlled machine
+
+ssh-keygen
+
+-copy the key in destination servers
+
+vi .ssh/authorized_keys
+
+
+vi /root/.ssh/authorized_keys
+
+- to verify pin
+
+ansible -m ping servers
+
+Use this command to run a playbook: $ ansible-playbook <playbook.yml>
+Use this command to check the playbook for syntax errors: $ ansible-playbook <playbook.yml> --syntax-check
+
+-For installing we use command module --- yum module or apt module
+
+ad hoc commands are great for tasks you repeat rarely. 
+For example, if you want to power off all the machines in your lab for Christmas vacation, you could execute a quick one-liner in Ansible without writing a playbook.
+ An ad hoc command looks like this:
+
+$ ansible [pattern] -m [module] -a "[module options]"
+
+ansible servers -m yum -a 'name=git state=latest'
+
+yum module:
+----------
+
+- name: Install the latest version of Apache
+  ansible.builtin.yum:
+    name: httpd
+    state: latest
+
+- ansible file module
+----------------------- name: Touch the same file, but add/remove some permissions
+  ansible.builtin.file:
+    path: /etc/foo.conf
+    state: touch
+    mode: u+rw,g-wx,o-rwx
+
+same in adhoc command:
+
+ansible servers -m file -a 'path=/etc/foo.conf state=touch mode=0777'
+
+-to remove file
+---------------
+ansible servers -m file -a 'path=/etc/foo.conf state=absent mode=0777'
+
+-to create directory
+---------------
+ansible servers -m file -a 'path=/etc/foo.conf state=directory mode=0755'
+
+-to check a file exists or not
+-------------------------------
+ansible servers -m stat -a 'path=/etc/foo.conf'
+
+
+
+- ansible user module
+---------------------------
+
+-to create user
+
+- name: Add the user 'johnd' with a specific uid and a primary group of 'admin'
+  ansible.builtin.user:
+    name: johnd
+    comment: John Doe
+    uid: 1040
+    group: admin
+
+
+ansible servers -m user -a 'name=tomcat10 uid=1040'
+
+to delete user 
+-------------
+ansible servers -m user -a 'name=tomcat10 uid=1040 state=absent'
+
+
+
+- ansible group module
+---------------------------
+
+- name: Ensure group "somegroup" exists
+  ansible.builtin.group:
+    name: somegroup
+    state: present
+
+ansible servers -m group -a 'name=sonar state=present'
+
+
+- ansible service module
+---------------------------
+
+- name: Start service httpd, if not started
+  ansible.builtin.service:
+    name: httpd
+    state: started
+
+ansible servers -m service -a 'name=sshd state=restarted'
+
+ 

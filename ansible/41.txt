@@ -1,0 +1,63 @@
+ansible role
+------------
+ansible-galaxy init /etc/ansible/roles/apache --offline
+
+https://www.learnitguide.net/2018/02/ansible-roles-explained-with-examples.html
+
+https://vinodhakumara2681997.medium.com/ansible-role-to-install-jenkins-on-any-platform-55a339a2eebd
+
+install maven and source
+------------------------
+---
+- name: playbook to install maven and give file access
+  hosts: server
+  become: yes
+  remote_user: root
+  gather_facts: false
+  tasks: 
+    - name: Installing maven on slave node
+      get_url:
+        url: https://dlcdn.apache.org/maven/maven-3/3.8.7/binaries/apache-maven-3.8.7-bin.tar.gz
+        dest: /opt
+        mode: '0777'
+    - name: Extracting the tar file
+      unarchive:
+        src: /opt/apache-maven-3.8.7-bin.tar.gz
+        dest: /opt
+        remote_src: yes
+    - name: Adding the path in bashrc file
+      lineinfile: 
+        dest: /root/.bashrc
+        line: 'export PATH=$PATH:/opt/apache-maven-3.8.7/bin'
+        insertafter: 'EOF'
+        regexp: export PATH=\$PATH:/opt/apache-maven-3.8.7/bin' 
+    - name: Source the bashrc file
+      shell: source /root/.bashrc
+      remote_user: root
+
+
+set_host_ip
+-----------
+
+- hosts: localhost
+  tasks:
+    - name: add hosts
+      blockinfile:
+        path: /etc/hosts
+        block:  |
+          {{ item.ip }}  {{ item.name }}
+        marker: "#{mark} ANSIBLE MANAGED BLOCK {{ item.name }}"
+      loop:
+        - { name: host1, ip:10.10.1.10 }
+        - { name: host2, ip:10.10.1.11 }
+        - { name: host3, ip:10.10.1.12 }
+
+
+To encrypt the playbook
+-----------------------
+
+ansible-vault create --vault-id @prompt test.yml
+
+ansible-vault view test.yml
+
+ansible-playbook --vault-id @prompt test.yml

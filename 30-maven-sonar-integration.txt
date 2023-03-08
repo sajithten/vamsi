@@ -1,0 +1,25 @@
+sonarqube uses 9000 port
+
+for changing default database we need edit the config
+
+to intergrate sonar with maven..go to profile..security..generate tokens
+
+need to add plugin in pom.xml
+-----------------------------
+
+             <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>3.9.1.2184</version>
+            </plugin>
+
+
+The latest version of the plugin is available here. Now, we need to execute this command from the root of our project directory to scan it:
+-------------------------------------------------------------------------------------------------------------------------------------------
+mvn sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.login=the-generated-token
+
+mvn sonar:sonar -Dsonar.host.url=http://13.126.39.157:9000 -Dsonar.login=sqa_2ab7fbf705ad7930fc4169e0fc8e90bfdeb42b6a
+
+caching issue to remove sonar local
+-----------------------------------
+rm -rf /home/ec2-user/ /.m2/repository/org/sonarsource/

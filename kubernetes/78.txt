@@ -1,0 +1,9 @@
+we will create deployemtn and service files.
+ then will create ingress files
+
+before creating ingress yml we need to deploy ingress controller
+
+nginx ingress controller
+-----------------------
+https://github.com/cloudtechmasters/Minikube-springbootCICD
+

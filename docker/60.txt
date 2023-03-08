@@ -1,0 +1,57 @@
+https://medium.com/thecodefountain/develop-a-spring-boot-and-mysql-application-and-run-in-docker-end-to-end-15b7cdf3a2ba
+
+https://github.com/cloudtechmasters/springboot-mysql-docker-assignment.git
+
+
+docker run --name mysql-container -e MYSQL_ROOT_PASSWORD=admin -e MYSQL_DATABASE=customerdb -e MYSQL_USER=admin -e MYSQL_PASSWORD=admin123 -d mysql:latest
+
+
+
+docker exec -it mysql-container bash
+
+mysql -u admin -p password
+
+show databases;
+
+\q
+
+yum install git maven java-1.8.0-openjdk-devel -y
+
+
+docker run --name=test -p 33333:33333 --link mysql-container:mysql -d containername
+
+
+
+sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+
+sudo chmod +x /usr/local/bin/docker-compose
+
+docker-compose version
+
+
+
+docker-compose.yml
+-----------------
+version: "3.9"
+services: 
+  nginxservice:
+    image: nginx
+    ports: 
+        - "80:80"
+  tomcatservice:
+    image: tomcat
+    ports:
+       - "8080:8080"
+--------------------
+
+version: "3.9"
+services: 
+  mysqlservice:
+    image: mysql
+    enivornment:
+      - MYSQL_DATABASE=postgres
+      - MYSQl_USER=postgres
+      - MYSQL_PASSWORD=postgres
+      - MYSQL_ROOT_PASSWORD=postgres
+
+/usr/local/bin/docker-compose -f filename.yml up --detach

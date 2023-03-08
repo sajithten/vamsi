@@ -1,0 +1,8 @@
+az group create --name myresourcegroup --location eastus
+
+az provider show -n Microsoft.OperationsManagement -o table
+
+https://kubernetes.io/docs/reference/kubectl/docker-cli-to-kubectl/
+
+# start the pod running nginx
+kubectl create deployment --image=nginx nginx-app

@@ -1,0 +1,148 @@
+install java
+------------
+
+sudo yum install java-17-amazon-corretto-headless
+sudo yum install java-11-amazon-corretto-headless
+
+sudo update-alternatives --config java
+
+install postgres14
+----------------- 
+
+amazon-linux-extras install postgresql14 vim epel -y
+
+yum install -y postgresql-server postgresql-devel
+
+/usr/bin/postgresql-setup --initdb
+
+
+vi /var/lib/pgsql/data/pg_hba.conf
+----------------------------------
+
+change ipv4 to 0.0.0.0/0 and md5
+
+vi /var/lib/pgsql/data/postgresql.conf
+----------------------------------------
+
+change listen address "*" and uncomment
+
+
+Start the server
+---------------
+ service postgresql start
+
+su - postgres
+
+psql
+
+To change default posgres password
+----------------------------------
+
+\password postgres
+
+To create user and database custom
+----------------------------------
+create database sonarqubedb;
+
+create user sonarqube with encrypted password 'Cloud#436';
+
+grant all privileges on database sonarqubedb to sonarqube
+
+
+Download sonar
+-----------------
+cd /opt
+
+wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-9.8.0.63668.zip
+
+Not recommended to run sonar as root bcz wil use default database..so btr to create sonar user
+
+useradd sonar
+passwd sonar
+
+chown sonar:sonar sonarqube-9.8.0.63668 -R
+
+
+To add postgresql details
+-------------------------
+
+vi sonarqube-9.8.0.63668/conf/sonar.properties
+
+
+# User credentials.
+# Permissions to create tables, indices and triggers must be granted to JDBC user.
+# The schema must be created first.
+sonar.jdbc.username=postgres
+sonar.jdbc.password=post123
+
+
+#----- PostgreSQL 9.6 or greater
+# By default the schema named "public" is used. It can be overridden with the parameter "currentSchema".
+sonar.jdbc.url=jdbc:postgresql://localhost/postgres
+
+To start
+--------
+cd /opt/sonarqube-9.8.0.63668/bin/linux-x86-64/
+
+sh sonar.sh start
+
+To enter postgres table
+------------------------
+
+psql -U sonarqube -W sonarqubedb -h 65.2.137.248
+
+
+Jenkins
+-------
+
+hostnamectl set-hostname jenkins
+
+sudo yum install java-17-amazon-corretto-headless -y
+
+sudo amazon-linux-extras install epel -y
+
+sudo yum install git -y
+
+cd /opt
+
+wget https://dlcdn.apache.org/maven/maven-3/3.8.7/binaries/apache-maven-3.8.7-bin.tar.gz
+
+tar -xvf apache-maven-3.8.7-bin.tar.gz
+
+install jenkins
+
+https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip
+
+
+pipeline{
+    agent any
+    tools {
+        maven 'maven3'
+    }
+    stages{
+        stage("SCM"){
+            steps{
+                git 'https://github.com/sajithten/springboot-java-maven.git'
+            }
+        }
+        stage("Build Artifact") {
+            steps{
+                sh "mvn clean package"
+            }
+        }
+        stage("Deploy to Sonar") {
+            steps{
+                withSonarQubeEnv(installationName: 'sonarqube', credentialsId: 'jenkins-sonar-token') {
+                    sh "${ tool ("sonarqube")}/sonar-scanner -Dsonar.projectKey=hellospringboot -Dsonar.projectName=hellospringboot -Dsonar.sourceEncoding=UTF-8 -Dsonar.sources=src"
+                }
+            }
+        }
+	stage("Quality Gate") {
+            steps {
+              timeout(time: 1, unit: 'HOURS') {
+                waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+    }
+}

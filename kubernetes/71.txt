@@ -1,0 +1,42 @@
+replication set vs replication controller
+-----------------------------------------
+kubectl explain rc
+kubectl explain rs
+
+kubectl get rs
+
+mix of replication set and replication controller is depolyment that we use:
+
+init container
+-------------
+A Pod can have multiple containers running apps within it, but it can also have one or more init containers, which are run before the app containers are started.
+
+Init containers are exactly like regular containers, except:
+
+Init containers always run to completion.
+Each init container must complete successfully before the next one starts.
+
+minikube service <servicename>
+
+
+https://www.mirantis.com/blog/kubernetes-replication-controller-replica-set-and-deployments-understanding-replication-options/
+
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: nginx
+spec:
+  replicas: 3
+  selector:
+    app: nginx
+  template:
+    metadata:
+      name: nginx
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80

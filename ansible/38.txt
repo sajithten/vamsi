@@ -1,0 +1,70 @@
+Download s3 bucket using ansible
+--------------------------------
+
+The below requirements are needed on the host that executes this module.
+
+python >= 3.6
+
+boto3 >= 1.18.0
+
+botocore >= 1.21.0
+
+---
+- name: Playbook to download from s3 bucket
+  become: true
+  hosts: localhost
+  tasks:
+    - name: download object from s3
+      aws_s3: 
+        bucket: bucketname
+        object: objectname
+        dest: /opt/objectname
+        mode: get
+   
+
+ansible-playbook filename.yml -i hostname
+--------------------------------------------
+
+To validate and download from s3
+--------------------------------
+
+---
+- name: Playbook to download from s3 bucket
+  become: true
+  hosts: localhost
+    tasks:
+    - name: validate download or not
+      stat: 
+        path: /opt/filename
+      register: jar_output
+    - name: print jar_output
+      debug:
+        msg: "{{ jar_output }}"
+    - name: download object from s3
+      aws_s3: 
+        bucket: bucketname
+        object: objectname
+        dest: /opt/objectname
+        mode: get
+      when: not jar_output.stat.exists
+
+To run the process in background
+--------------------------------
+
+  shell: nohup java -jar app.jar </dev/null >/dev/null 2>&1 &
+
+
+
+- name: Run Java app in the background
+  shell: cd /opt; nohup java -jar app.jar </dev/null >/dev/null 2>&1 &
+
+To verify java process running
+------------------------------
+ps aux | grep java
+
+
+To interract with webservices
+-------------------------------
+url module
+
+

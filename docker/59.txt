@@ -1,0 +1,20 @@
+Store docker images in nexus
+----------------------------
+
+docker login nexusdocekrrepourl:8085
+
+add the entry for log error
+
+vi /etc/docker/daemon.json
+------------------------
+
+{
+  "insecure-registries" : ["19.205.63.12:5000"]
+}
+--------------------------------
+
+
+service docker restart
+
+docker image build -t nexusdocekrrepourl:8085/python .
+

@@ -1,0 +1,121 @@
+https://medium.com/jorgeacetozi/kubernetes-master-components-etcd-api-server-controller-manager-and-scheduler-3a0179fc8186
+
+what are the components present in master node and worker node
+--------------------------------------------------------------
+
+master node 
+----------
+scheduler controller manager, API server and etcd components
+
+Worker node
+-----------
+kubelet, Container engine, service proxy
+
+
+dockerize python app
+--------------------
+https://www.geeksforgeeks.org/dockerize-your-flask-app/
+
+https://skryvets.com/blog/2021/03/15/kubernetes-pull-image-from-private-ecr-registry/
+----------------------------------
+$mkdir flask_docker_demo
+$cd flask_docker_demo #to change the directory
+------------------------------------------------
+
+from flask import Flask
+app = Flask(__name__)
+
+@app.route('/')
+def hello():
+	return "welcome to the flask tutorials"
+
+
+if __name__ == "__main__":
+	app.run(host ='0.0.0.0', port = 5001, debug = True)
+----------------------------------------------------------
+
+FROM python:alpine3.7
+COPY . /app
+WORKDIR /app
+RUN pip install -r requirements.txt
+EXPOSE 5001
+ENTRYPOINT [ "python" ]
+CMD [ "demo.py" ]
+---------------------------------------------------------
+
+cd
+--
+
+aws configure
+
+
+kubectl create secret docker-registry regcred \
+  --docker-server=${670053109278}.dkr.ecr.${ap-south-1}.amazonaws.com \
+  --docker-username=AWS \
+  --docker-password=$(aws ecr get-login-password) \
+  --namespace=default
+
+
+kubectl get secrets
+
+cp nginx-pod.yaml pythonflask-pod.yaml
+
+
+
+
+To replace nginx with flask in pythonflask
+-----------------------------------------
+
+sed -i 's/nginx/flask/g' pythonflask-pod.yaml
+
+pythonflask-deployment.yml
+--------------------------
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: flask-pod
+  namespace: default
+  labels:
+    app: flask
+spec:
+  containers:
+  - name: python
+    image: 670053109278.dkr.ecr.ap-south-1.amazonaws.com/python:latest
+    ports:
+      - containerPort: 5001
+    resources:
+      limits:
+        cpu: "1"
+      requests:
+        cpu: "0.5"
+  imagePullSecrets:
+   - name: regcred
+-----------------------------------------------------------------
+
+kubectl apply -f pythonflask-deployment.yaml
+
+pythonflask-service.yml
+----------------------
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-pod
+spec:
+  selector:
+    app: flask
+  ports:
+    - protocol: TCP
+      port: 5001
+      targetPort: 5001
+      nodePort: 32698
+  type: NodePort
+------------------------------------------------------------
+
+
+kubectl apply -f pythonflask-service.yaml
+
+
+kubectl get svc
+

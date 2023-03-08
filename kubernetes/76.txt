@@ -1,0 +1,56 @@
+install eks cluster
+-------------------
+
+t2.micro instance or can do from windows
+need to add adminstrator full access role to ec2instance
+
+add eks----
+curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+sudo mv /tmp/eksctl /usr/bin
+eksctl version
+
+cluster.yml
+-------------------
+
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: basic-cluster
+  region: ap-south-1
+
+nodeGroups:
+  - name: ng-1
+    instanceType: t2.large
+    desiredCapacity: 2
+	minSize: 2
+	maxSize: 4
+    volumeSize: 20
+    ssh:
+      allow: true # will use ~/.ssh/id_rsa.pub as the default ssh key
+	  publicKeyName: docker
+  - name: ng-2
+    instanceType: t2.xlarge
+	minSize: 2
+	maxSize: 4
+    desiredCapacity: 2
+    volumeSize: 20
+    ssh:
+      allow: true # will use ~/.ssh/id_rsa.pub as the default ssh key
+	  publicKeyName: docker
+-------------------------------------------------------------------------------
+
+eksctl create cluster -f cluster.yaml
+
+
+install kubectl
+*---------------
+curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.23.15/2023-01-11/bin/linux/amd64/kubectl
+chmod +x ./kubectl
+mkdir -p $HOME/bin
+cp ./kubectl $HOME/bin/kubectl
+export PATH=$HOME/bin:$PATH
+echo 'export PATH=$HOME/bin:$PATH' >> ~/.bashrc
+source $HOME/.bashrc
+kubectl version --short --client
+

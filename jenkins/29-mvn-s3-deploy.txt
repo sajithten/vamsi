@@ -1,0 +1,24 @@
+mvn clean package
+mvn clean install
+
+java -jar file.jar or mvn spring-boot:run
+
+creating a bucket
+---------------------------
+aws s3api create-bucket --bucket sprin-boot-2255 --create-bucket-configuration LocationConstraint=ap-south-1
+
+
+Coying to bucket
+------------------
+aws s3 cp springboot-java-maven-0.0.1-SNAPSHOT.jar s3://sprin-boot-2255/
+
+
+
+Getting from s3
+---------------
+aws s3 cp s3://sprin-boot-2255/springboot-java-maven-0.0.1-SNAPSHOT.jar spring.jar
+
+For setting host server name
+----------------------------
+sudo hostnamectl set-hostname nameofserver
+

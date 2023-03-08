@@ -1,0 +1,168 @@
+direct upload
+-------------
+curl -v -u admin:admin123 --upload-file target/springboot-maven-course-micro-svc-0.0.1-snapshot.jar http://24.56.89.23/repository/maven-snapshots/com/cloudtechmasters/springboot-maven-course-micro-svc-0.0.1-snapshot.jar
+
+curl -v -u username_token_code:password_token_code --upload-file file.ext \
+    https://example.com/nexus/content/repositories/snapshots/ \
+    com.example.snapshot/com/example/myscripts/1.2.3/file-1.2.3-SNAPSHOT.ext
+
+
+50------------------------------
+
+nexus artifact uploader plugin
+
+pipeline utlity steps
+------------------------------
+
+pipeline {
+    agent any
+    tools {
+        maven "maven3"
+    }
+    environment {
+        NEXUS_VERSION = "nexus3"
+        NEXUS_PROTOCOL = "http"
+        NEXUS_URL = "18.206.74.244:8081"
+        NEXUS_REPOSITORY = "maven-releases"
+        NEXUS_CREDENTIAL_ID = "nexus-credentials"
+    }
+    stages {
+        stage("SCM") {
+            steps {
+                script {
+                    git 'https://github.com/cloudtechmasters/springboothello-CICD.git';
+                }
+            }
+        }
+        stage("Maven Build") {
+            steps {
+                script {
+                    sh "mvn package -DskipTests=true"
+                }
+            }
+        }
+        stage("Publish to Nexus Repository Manager") {
+            steps {
+                script{
+                    pom = readMavenPom file: "pom.xml";
+                    filesByGlob = findFiles(glob: "target/*.${pom.packaging}");
+                    echo "${filesByGlob[0].name} ${filesByGlob[0].path} ${filesByGlob[0].directory} ${filesByGlob[0].length} ${filesByGlob[0].lastModified}"
+                    artifactPath = filesByGlob[0].path;
+                    artifactExists = fileExists artifactPath;
+                    if(artifactExists) {
+                        echo "* File: ${artifactPath}, group: ${pom.groupId}, packaging: ${pom.packaging}, version ${pom.version}";
+                        nexusArtifactUploader(
+                            nexusVersion: NEXUS_VERSION,
+                            protocol: NEXUS_PROTOCOL,
+                            nexusUrl: NEXUS_URL,
+                            groupId: pom.groupId,
+                            version: pom.version,
+                            repository: NEXUS_REPOSITORY,
+                            credentialsId: NEXUS_CREDENTIAL_ID,
+                            artifacts: [
+                                [artifactId: pom.artifactId,
+                                classifier: '',
+                                file: artifactPath,
+                                type: pom.packaging],
+                                [artifactId: pom.artifactId,
+                                classifier: '',
+                                file: "pom.xml",
+                                type: "pom"]
+                            ]
+                        );
+                    } else {
+                        error "* File: ${artifactPath}, could not be found";
+                    }
+                }
+            }
+        }
+    }
+}
+
+--------------------------------------------------------------------------------------------------
+
+pipeline {
+    agent any
+
+    tools {
+        // Install the Maven version configured as "M3" and add it to the path.
+        maven "M3"
+    }
+    environment {
+        NEXUS_VERSION = "nexus3"
+        NEXUS_PROTOCOL = "http"
+        NEXUS_URL = "65.2.81.134:8081"
+        NEXUS_REPOSITORY = "maven-releases"
+        NEXUS_CREDENTIAL_ID = "nexuslogin"
+    }
+
+    stages {
+        stage('SCM') {
+            steps {
+                // Get some code from a GitHub repository
+                git 'https://github.com/sajithten/springboot-java-maven.git'
+            }
+        }
+        stage('BUILD'){
+            steps {
+                sh 'mvn clean install -DskipTests'
+            }
+            post {
+                // If Maven was able to run the tests, even if some of the test
+                // failed, record the test results and archive the jar file.
+                success {
+                    archiveArtifacts 'target/*.jar'
+                }
+            }
+        }
+        stage('CODE ANALYSIS with SONARQUBE') {
+      
+          steps{
+                withSonarQubeEnv(installationName: 'sonar', credentialsId: 'sonartoken') {
+                    sh "${ tool ("sonar")}/sonar-scanner -Dsonar.projectKey=hellospringboot -Dsonar.projectName=hellospringboot -Dsonar.sourceEncoding=UTF-8 -Dsonar.sources=src"
+                }
+                timeout(time: 5, unit: 'MINUTES') {
+               waitForQualityGate abortPipeline: true
+            }
+          }
+
+        }
+        stage("Publish to Nexus Repository Manager") {
+            steps {
+                script{
+                    pom = readMavenPom file: "pom.xml";
+                    filesByGlob = findFiles(glob: "target/*.${pom.packaging}");
+                    echo "${filesByGlob[0].name} ${filesByGlob[0].path} ${filesByGlob[0].directory} ${filesByGlob[0].length} ${filesByGlob[0].lastModified}"
+                    artifactPath = filesByGlob[0].path;
+                    artifactExists = fileExists artifactPath;
+                    if(artifactExists) {
+                        echo "* File: ${artifactPath}, group: ${pom.groupId}, packaging: ${pom.packaging}, version ${pom.version}";
+                        nexusArtifactUploader(
+                            nexusVersion: NEXUS_VERSION,
+                            protocol: NEXUS_PROTOCOL,
+                            nexusUrl: NEXUS_URL,
+                            groupId: pom.groupId,
+                            version: pom.version,
+                            repository: NEXUS_REPOSITORY,
+                            credentialsId: NEXUS_CREDENTIAL_ID,
+                            artifacts: [
+                                [artifactId: pom.artifactId,
+                                classifier: '',
+                                file: artifactPath,
+                                type: pom.packaging],
+                                [artifactId: pom.artifactId,
+                                classifier: '',
+                                file: "pom.xml",
+                                type: "pom"]
+                            ]
+                        );
+                    } 
+                    else {
+                        error "* File: ${artifactPath}, could not be found";
+                    }  
+                }
+            }
+        }
+    }
+}
+

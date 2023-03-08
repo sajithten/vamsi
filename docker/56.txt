@@ -1,0 +1,107 @@
+jenkins-maven-docker
+--------------------
+
+https://github.com/cloudtechmasters/spring-boot-gradle-demo.git
+
+
+chmod 777 /var/run/docker.sock
+gpasswd -a jenkins docker
+
+pipeline{
+    agent any
+    tools{
+        maven 'maven'
+    }
+    stages{
+        stage('Git checkout'){
+            steps{
+                git branch:'master',url:'https://github.com/sajithten/springboot-java-maven.git'
+              }
+            }
+        stage ('Build the project'){
+            steps{
+                sh 'mvn clean package'
+                }
+            }
+        stage ('Building docker image'){
+            steps{
+                sh 'docker image build -t sajithten/springboot:$BUILD_NUMBER .'
+
+                 }
+            }
+        stage ('Login into docker & push image'){
+            steps{
+                withCredentials([usernamePassword(credentialsId: 'docker', passwordVariable: 'password', usernameVariable: 'username')]) {
+                 sh 'docker login -u ${username} -p ${password}'
+                }
+                 sh 'docker image push sajithten/springboot:$BUILD_NUMBER'
+            }
+        }
+        stage ('Stop and removong previous container'){
+            steps{
+                sh 'docker ps -f name=myjavacontainer -q | xargs --no-run-if-empty docker container stop'
+                sh 'docker container ls -a -f name=myjavacontainer -q | xargs -r docker container rm'
+            }
+        }
+        stage('Run docker container'){
+            steps{
+                sh 'docker run --name=myjavacontainer -p 2255:8080 -d sajithten/springboot:$BUILD_NUMBER'
+            }
+        }
+
+      }      
+}            
+ 
+
+
+Gradle
+--------
+
+pipeline{
+    agent any
+    tools{
+        gradle'gradle'
+    }
+    stages{
+        stage('Git checkout'){
+            steps{
+                git branch:'main',url:'https://github.com/sajithten/gradle-demo.git'
+            
+            }
+        }
+        stage('Build the project'){
+            steps{
+                sh 'gradle clean build'
+            }
+        }
+        stage ('Building docker image'){
+            steps{
+                sh 'docker image build -t sajithten/gradle:$BUILD_NUMBER .'
+
+                 }
+            }
+        stage ('Login into docker & push image'){
+            steps{
+                withCredentials([usernamePassword(credentialsId: 'docker', passwordVariable: 'password', usernameVariable: 'username')]) {
+                 sh 'docker login -u ${username} -p ${password}'
+                }
+                 sh 'docker image push sajithten/gradle:$BUILD_NUMBER'
+            }
+        }
+        stage ('Stop and removong previous container'){
+            steps{
+                sh 'docker ps -f name=myjavagradlecontainer -q | xargs --no-run-if-empty docker container stop'
+                sh 'docker container ls -a -f name=myjavagradlecontainer -q | xargs -r docker container rm'
+            }
+        }
+        stage('Run docker container'){
+            steps{
+                sh 'docker run --name=myjavagradlecontainer -p 8081:8080 -d sajithten/gradle:$BUILD_NUMBER'
+            }
+        }
+
+      }      
+}            
+
+
+cloudbees aws plugin

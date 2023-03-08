@@ -1,0 +1,10 @@
+deployment strategies
+----------------------
+rolling update
+blue green
+canary deployment
+
+https://github.com/cloudtechmasters/Rollingupdate-Rollback-NodejsApp
+
+maxUnavailble defines the maximum number of pods that can be unavailable in the update process
+maxSurge defines the maximum number of pods that can be created.

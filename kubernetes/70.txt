@@ -1,0 +1,51 @@
+
+https://www.mirantis.com/blog/kubernetes-replication-controller-replica-set-and-deployments-understanding-replication-options/
+
+https://www.howtoforge.com/labels-and-selectors-in-kubernetes/
+
+What is Kubernetes replication for?
+Before we go into the details on how you would do replication, let's talk about why.
+  Typically you would want to replicate your containers (and thereby your applications) for several reasons, including:
+  
+Reliability: By having multiple versions of an application, you prevent problems if one or more fails.
+             This is particularly true if the system replaces any containers that fail.
+			 
+Load balancing: Having multiple versions of a container enables you to easily send traffic to different instances to prevent overloading of a single instance or node.
+                This is something that Kubernetes does out of the box, making it extremely convenient.
+Scaling: When load does become too much for the number of existing instances, 
+          Kubernetes enables you to easily scale up your application, adding additional instances as needed.
+		  
+Labels are nothing but key-value pairs assigned to Kubernetes Objects like Pods, Service, etc. 
+Labels can be used to organize and to select Kubernetes objects.
+Labels can be attached to objects at creation time and can be modified at any time. We can add multiple Labels to Kubernetes objects.
+
+Selectors are used by the users to select a set of objects. The label selector is the core grouping primitive in Kubernetes. 
+Kubernetes API supports two types of selectors
+
+
+eg of label
+-----------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: label-demo-pod
+  labels:
+    environment: test
+    app: nginx
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.14.2
+    ports:
+    - containerPort: 80
+-------------------------------
+
+
+kubectl get replicationcontroller
+kubectl get replicationcontroller --show-labels
+kubectl get replicationcontroller --selector app=<labelname>
+
+
+to add label later
+--------------------
+kubectl label replicationcontroller <metadataname> <project=project1>

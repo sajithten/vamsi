@@ -1,0 +1,161 @@
+
+https://github.com/cloudtechmasters/kubernetes-EBS-storageclass-persistentvolumeclaim
+
+create policy in iam
+--------------------
+
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:AttachVolume",
+        "ec2:CreateSnapshot",
+        "ec2:CreateTags",
+        "ec2:CreateVolume",
+        "ec2:DeleteSnapshot",
+        "ec2:DeleteTags",
+        "ec2:DeleteVolume",
+        "ec2:DescribeInstances",
+        "ec2:DescribeSnapshots",
+        "ec2:DescribeTags",
+        "ec2:DescribeVolumes",
+        "ec2:DetachVolume"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+------------------------------------------
+Review the same in Visual Editor
+Click on Review Policy
+Name: Amazon_EBS_CSI_Driver
+Description: Policy for EC2 Instances to access Elastic Block Store
+Click on Create Policy
+
+create a role and attach policy to that and attch to ec2.
+
+need to install helm on eks
+----------------------------
+curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 > get_helm.sh
+chmod 700 get_helm.sh
+./get_helm.sh
+
+export PATH=$PATH:/usr/local/bin/
+
+aws csi driver
+--------------
+https://www.eksworkshop.com/beginner/170_statefulset/ebs_csi_driver/
+
+helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver
+
+helm repo list
+
+to install
+----------
+helm upgrade --install aws-ebs-csi-driver \
+  --version=2.16.0 \
+  --namespace kube-system \
+  --set serviceAccount.controller.create=false \
+  --set serviceAccount.snapshot.create=false \
+  --set enableVolumeScheduling=true \
+  --set enableVolumeResizing=true \
+  --set enableVolumeSnapshot=true \
+  --set serviceAccount.snapshot.name=ebs-csi-controller-irsa \
+  --set serviceAccount.controller.name=ebs-csi-controller-irsa \
+  aws-ebs-csi-driver/aws-ebs-csi-driver
+  
+  
+helm ls -n kube-system
+
+kubectl get pods -n kube-system
+
+persistentvolumeclaim storageclass creation
+------------------------------------------
+storage-class.yml
+----------------
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata: 
+  name: ebs-sc
+provisioner: ebs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer 
+------------------------------------------
+
+kubectl apply -f storage-class.yml
+kubectl get sc
+
+persistentvolumeclaim.yml
+------------------------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ebs-mysql-pv-claim
+spec: 
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ebs-sc
+  resources: 
+    requests:
+      storage: 4Gi
+------------------------------
+
+until we use pvc th volume will be pending
+kubectl get pvc
+
+creating mysql config map
+usermanagement-configmap.yml
+----------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: usermanagement-dbcreation-script
+data: 
+  mysql_usermgmt.sql: |-
+    DROP DATABASE IF EXISTS usermgmt;
+    CREATE DATABASE usermgmt; 
+------------------------------------
+
+mysql-deployment.yml
+--------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+spec: 
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  strategy:
+    type: Recreate 
+  template: 
+    metadata: 
+      labels: 
+        app: mysql
+    spec: 
+      containers:
+        - name: mysql
+          image: mysql:5.6
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: dbpassword11
+          ports:
+            - containerPort: 3306
+              name: mysql    
+          volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql    
+            - name: usermanagement-dbcreation-script
+              mountPath: /docker-entrypoint-initdb.d #https://hub.docker.com/_/mysql Refer Initializing a fresh instance                                            
+      volumes: 
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: ebs-mysql-pv-claim
+        - name: usermanagement-dbcreation-script
+          configMap:
+            name: usermanagement-dbcreation-script
+--------------------------------------------------------------------------------------------------------------------------------
+

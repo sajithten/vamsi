@@ -1,0 +1,45 @@
+dockerise dotnet
+----------------
+sudo rpm -Uvh https://packages.microsoft.com/config/rhel/7/packages-microsoft-prod.rpm
+sudo yum makecache
+sudo yum install dotnet-sdk-2.2
+dotnet --version
+
+console application
+--------------------
+mkdir dotnet-workspace
+cd dotnet-workspace
+dotnet new console
+dotnet restore
+dotnet publish --configuration release
+dotnet run pathofdllfile
+
+web application
+---------------
+dotnet new web -n mywebapp1
+cd mywebapp1
+dotnet add package AWSSDK.S3
+dotnet restore
+dotnet publish --configuration release
+dotnet run pathofdllfile
+dotnet run --urls=http://0.0.0.0:5000
+
+
+api application
+---------------
+dotnet new api -n myapiapp
+cd myapiapp
+dotnet restore
+dotnet publish --configuration release
+dotnet run pathofdllfile
+dotnet run --urls=http://0.0.0.0:5000
+
+Dockerfile
+---------
+FROM mcr.microsoft.com/dotnet/aspnet:5.0
+COPY bin/releases/net5.0/publish/ App/
+WORKDIR /App
+ENTRYPOINT ["dotnet", "mywebapp.dll"]
+
+
+docker logs containername

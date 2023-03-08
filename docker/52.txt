@@ -1,0 +1,22 @@
+docker pull openjdk:8
+
+docker images
+
+docker inspect imageid
+
+FROM openjdk:8
+COPY target/springboot...jar app.jar
+ENTRYPOINT ["java,"-jar","/app.jar"]
+
+docker image build -t cloudtechmaster/springboot-maven:v1 .
+
+docker rmi imageid --force
+
+docker login -u username -p password
+
+docker image push imagename:tag
+
+docker image pull imagename:tag
+
+docker container run --name=containername -p 8080:8080 --detach imagename:id
+

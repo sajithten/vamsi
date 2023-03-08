@@ -1,0 +1,12 @@
+docker exec -it conatainername bash
+
+docker stop containername
+
+docker rm containername
+
+FROM tomcat:9
+COPY build/libs/spring.jar /usr/local/tomcat/webapps
+WORKDIR webapps
+RUN rm -rf ROOT && mv spring.jar ROOT.war
+
+docker cp source destination

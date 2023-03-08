@@ -1,0 +1,213 @@
+springboot-postgresql-kubernetes
+--------------------------------
+if the information is secret we use k8s secret
+
+opaque aribitary user-defined data
+username and passwd can be base64 encoding
+
+admin YWRtaW4=
+passwd YWRtaW4xMjM=
+
+postgres-secrets.yml
+--------------------
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secrets
+type: Opaque
+data:
+  username: YWRtaW4=
+  password: YWRtaW4xMjM=
+---------------------------------
+kubectl apply -f postgres-secrets.yml
+
+kubectl get secrets
+
+kubectl describe secret <secretname>
+------------------------------------
+for every database there will be a path for storing data
+/var/lib/postgresql/data
+
+either host machine or ebs or efs volume.
+
+k8s has a concept of persistent volume and persistent volume claim
+
+postgres-storage.yml
+--------------------
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: postgres-pv-volume
+  labels:
+    type: local
+    app: postgres
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 250Mi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/data"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: postgres-pv-claim
+  labels:
+    app: postgres
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 250Mi
+--------------------------------------------------
+
+kubectl apply -f postgres-storage.yml
+
+kubectl get pv
+
+kubectl get pvc
+
+postgres-deployment.yml
+-----------------------
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:10.4
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 5432
+          env:
+           - name: POSTGRES_USER
+             valueFrom:
+               secretKeyRef:
+                 name: postgres-secrets
+                 key: username
+           - name: POSTGRES_PASSWORD
+             valueFrom:
+               secretKeyRef:
+                 name: postgres-secrets
+                 key: password
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgredb
+      volumes:
+        - name: postgredb
+          persistentVolumeClaim:
+            claimName: postgres-pv-claim
+-------------------------------------------------------------------------
+
+kubectl apply -f postgres-deployment.yml
+
+for enter inside the pod: kubectl exec -it <pod name> -- /bin/bash
+
+to connect postgres: psql -U admin -W postgres 
+to see tables: \dt
+we need to expose the postgres deployment as a service so that we know the hostname or ip address.
+
+postgres-service.yml
+-------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+spec:
+  type: ClusterIP
+  ports:
+   - port: 5432
+  selector:
+   app: postgres
+
+kubectl apply -f postgres-service.yml
+
+kubectl get svc
+
+for manual config: export POSTGRES_HOST=10.10.10.15
+export POSTGRES_USER=admin
+export POSTGRES_PASSWORD=admin123
+
+install openjdk-8-jdk openjdk-8-jre -y
+
+once the docekr is created push to repo then
+
+springboot-deployment.yml
+-------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-boot-postgres-sample
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: spring-boot-postgres-sample
+  replicas: 1
+  template:
+    metadata:
+      name: spring-boot-postgres-sample
+      labels:
+        app: spring-boot-postgres-sample
+    spec:
+      containers:
+      - name: spring-boot-postgres-sample
+        env:
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                 name: postgres-secrets
+                 key: username
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                 name: postgres-secrets
+                 key: password
+          - name: POSTGRES_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: hostname-config
+                key: postgres_host
+        image: sajithten/springboot-postgresql-docker-assignment:latest
+----------------------------------------------------------------------------------------
+Create a config map with the hostname of Postgres
+kubectl create configmap hostname-config --from-literal=postgres_host=$(kubectl get svc postgres -o jsonpath="{.spec.clusterIP}")
+
+kubectl get cm
+kubectl describe cm hostname-config
+
+
+springboot-service.yml
+----------------------
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: spring-boot-postgres-sample
+  name: spring-boot-postgres-sample
+spec:
+  ports:
+    - name: spring-boot-postgres-sample
+      port: 8080
+      protocol: TCP
+  selector:
+    app: spring-boot-postgres-sample
+  type: NodePort
